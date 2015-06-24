@@ -1009,6 +1009,21 @@ class SphericalSoftmax(Softmax):
 
         return rval
 
+    def cost(self, Y, Y_hat):
+        """
+        Y must be one-hot binary. Y_hat is a softmax estimate.
+        of Y. Returns negative log probability of Y under the Y_hat
+        distribution.
+        """
+        log_prob = T.log(Y_hat)
+        log_prob_of = (Y * log_prob).sum(axis=1)
+        assert log_prob_of.ndim == 1
+
+        rval = log_prob_of.mean()
+        #rval = log_prob_of.sum()
+
+        return - rval
+
 
 class SoftmaxPool(Layer):
     """
