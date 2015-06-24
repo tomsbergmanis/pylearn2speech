@@ -1019,6 +1019,16 @@ class SphericalSoftmax(Softmax):
 
         return - rval
 
+class SphericalSoftmaxSE(SphericalSoftmax):
+
+    def cost(self, Y, Y_hat):
+        diff = (Y - Y_hat)
+        err = diff * diff
+        se = err.sum(axis=1)
+        assert se.ndim == 1
+        
+        return se
+
 
 class SoftmaxPool(Layer):
     """
