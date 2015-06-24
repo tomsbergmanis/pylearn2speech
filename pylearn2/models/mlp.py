@@ -4562,3 +4562,10 @@ def geometric_mean_prediction(forward_props):
         presoftmax.append(out.owner.inputs[0])
     average = reduce(lambda x, y: x + y, presoftmax) / float(len(presoftmax))
     return T.nnet.softmax(average)
+    
+def spherical_softmax(x):
+        x2 = x*x
+        if x.ndim == 2:
+            return x2 / T.sum(x2, axis=1).dimshuffle(0, 'x')
+        else:
+            return x2 / T.sum(x2)
