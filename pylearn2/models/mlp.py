@@ -974,6 +974,42 @@ class Softmax(Layer):
                 desired_norms = T.clip(col_norms, 0, self.max_col_norm)
                 updates[W] = updated_W * (desired_norms / (1e-7 + col_norms))
 
+class SphericalSoftmax(Softmax):
+
+    def fprop(self, state_below):
+
+        self.input_space.validate(state_below)
+
+        if self.needs_reformat:
+            state_below = self.input_space.format_as(state_below, self.desired_space)
+
+        for value in get_debug_values(state_below):
+            if self.mlp.batch_size is not None and value.shape[0] != self.mlp.batch_size:
+                raise ValueError("state_below should have batch size "+str(self.dbm.batch_size)+" but has "+str(value.shape[0]))
+
+        self.desired_space.validate(state_below)
+        assert state_below.ndim == 2
+
+        if not hasattr(self, 'no_affine'):
+            self.no_affine = False
+
+        if self.no_affine:
+            Z = state_below
+        else:
+            assert self.W.ndim == 2
+            b = self.b
+
+            Z = T.dot(state_below, self.W) + b
+
+        rval = spherical_softmax(Z)
+
+        for value in get_debug_values(rval):
+            if self.mlp.batch_size is not None:
+                assert value.shape[0] == self.mlp.batch_size
+
+        return rval
+
+
 class SoftmaxPool(Layer):
     """
         A hidden layer that uses the softmax function to do
