@@ -1010,19 +1010,30 @@ class SphericalSoftmax(Softmax):
         return rval
 
     def cost(self, Y, Y_hat):
-        print  Y_hat.ndim
+        #print  Y_hat.ndim
         log_prob = T.log(Y_hat)
-        print  log_prob.ndim
+        #print  log_prob.ndim
         log_prob_of = (Y * log_prob).sum(axis=1)
-        print  log_prob_of.ndim
+        #print  log_prob_of.ndim
         assert log_prob_of.ndim == 1
 
         rval = log_prob_of.mean()
         #rval = log_prob_of.sum()
-
         return - rval
 
+
 class SphericalSoftmaxSE(SphericalSoftmax):
+
+    def cost(self, Y, Y_hat):
+        diff = (Y - Y_hat)
+        err = diff * diff
+        se = err.sum(axis=1)
+        assert se.ndim == 1
+        mse = se.mean()
+        return mse
+
+
+class SoftmaxSE(Softmax):
 
     def cost(self, Y, Y_hat):
         diff = (Y - Y_hat)
